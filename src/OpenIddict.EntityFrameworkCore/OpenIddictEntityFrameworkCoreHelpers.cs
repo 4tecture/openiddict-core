@@ -5,6 +5,9 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenIddict.EntityFrameworkCore;
@@ -112,5 +115,33 @@ namespace Microsoft.EntityFrameworkCore
                 .ApplyConfiguration(new OpenIddictScopeConfiguration<TScope, TKey>())
                 .ApplyConfiguration(new OpenIddictTokenConfiguration<TToken, TApplication, TAuthorization, TKey>());
         }
+
+#if !SUPPORTS_BCL_ASYNC_ENUMERABLE
+        /// <summary>
+        /// Executes the query and returns the results as a non-streamed async enumeration.
+        /// </summary>
+        /// <typeparam name="T">The type of the returned entities.</typeparam>
+        /// <param name="source">The query source.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that can be used to abort the operation.</param>
+        /// <returns>The non-streamed async enumeration containing the results.</returns>
+        internal static IAsyncEnumerable<T> AsAsyncEnumerable<T>(
+            [NotNull] this IQueryable<T> source, CancellationToken cancellationToken = default)
+        {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            return ExecuteAsync(cancellationToken);
+
+            async IAsyncEnumerable<T> ExecuteAsync(CancellationToken cancellationToken)
+            {
+                foreach (var element in await source.ToListAsync(cancellationToken))
+                {
+                    yield return element;
+                }
+            }
+        }
+#endif
     }
 }

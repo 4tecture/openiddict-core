@@ -35,7 +35,7 @@ namespace OpenIddict.Server
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (options.SecurityTokenHandler == null)
+            if (options.JsonWebTokenHandler == null)
             {
                 throw new InvalidOperationException("The security token handler cannot be null.");
             }
@@ -170,6 +170,36 @@ namespace OpenIddict.Server
             if (options.GrantTypes.Contains(GrantTypes.RefreshToken))
             {
                 options.Scopes.Add(Scopes.OfflineAccess);
+            }
+
+            if (options.GrantTypes.Contains(GrantTypes.AuthorizationCode))
+            {
+                options.ResponseTypes.Add(ResponseTypes.Code);
+            }
+
+            if (options.GrantTypes.Contains(GrantTypes.Implicit))
+            {
+                options.ResponseTypes.Add(ResponseTypes.IdToken);
+                options.ResponseTypes.Add(ResponseTypes.IdToken + ' ' + ResponseTypes.Token);
+                options.ResponseTypes.Add(ResponseTypes.Token);
+            }
+
+            if (options.GrantTypes.Contains(GrantTypes.AuthorizationCode) && options.GrantTypes.Contains(GrantTypes.Implicit))
+            {
+                options.ResponseTypes.Add(ResponseTypes.Code + ' ' + ResponseTypes.IdToken);
+                options.ResponseTypes.Add(ResponseTypes.Code + ' ' + ResponseTypes.IdToken + ' ' + ResponseTypes.Token);
+                options.ResponseTypes.Add(ResponseTypes.Code + ' ' + ResponseTypes.Token);
+            }
+
+            if (options.ResponseTypes.Count != 0)
+            {
+                options.ResponseModes.Add(ResponseModes.FormPost);
+                options.ResponseModes.Add(ResponseModes.Fragment);
+
+                if (options.ResponseTypes.Contains(ResponseTypes.Code))
+                {
+                    options.ResponseModes.Add(ResponseModes.Query);
+                }
             }
 
             foreach (var key in options.EncryptionCredentials

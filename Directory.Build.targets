@@ -6,10 +6,27 @@
     Note: Arcade automatically replaces copyrights defined in .props or .csproj files
     by the default Microsoft copyright. To ensure this doesn't happen, the replaced
     copyright is restored in this .targets file using the private variable set in .props.
+    Similarly, both delayed and public signing are disabled to override Arcade's defaults.
   -->
   
   <PropertyGroup>
     <Copyright>$(_ProjectCopyright)</Copyright>
+    <DelaySign>false</DelaySign>
+    <PublicSign>false</PublicSign>
   </PropertyGroup>
+
+  <!--
+    Note: Entity Framework Core 2.x references System.Interactive.Async 3.x, that includes
+    its own IAsyncEnumerable. To work around collisions between this type and the new type
+    now included in the BCL (System.Runtime), an alias is added to System.Interactive.Async.
+  -->
+
+  <Target Name="AddAssemblyAliasToReactiveAsync" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <ReferencePath Condition=" '%(FileName)' == 'System.Interactive.Async' ">
+        <Aliases>reactive</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 
 </Project>

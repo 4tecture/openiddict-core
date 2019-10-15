@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 
@@ -83,11 +84,24 @@ namespace OpenIddict.Server
         public IList<Uri> UserinfoEndpointUris { get; } = new List<Uri>();
 
         /// <summary>
-        /// Gets or sets the security token handler used to protect and unprotect tokens.
+        /// Gets or sets the JWT handler used to protect and unprotect tokens.
         /// </summary>
-        public OpenIddictServerTokenHandler SecurityTokenHandler { get; set; } = new OpenIddictServerTokenHandler
+        public OpenIddictServerJsonWebTokenHandler JsonWebTokenHandler { get; set; } = new OpenIddictServerJsonWebTokenHandler
         {
             SetDefaultTimesOnTokenCreation = false
+        };
+
+        /// <summary>
+        /// Gets the token validation parameters used by the OpenIddict server services.
+        /// </summary>
+        public TokenValidationParameters TokenValidationParameters { get; } = new TokenValidationParameters
+        {
+            ClockSkew = TimeSpan.Zero,
+            NameClaimType = OpenIddictConstants.Claims.Name,
+            RoleClaimType = OpenIddictConstants.Claims.Role,
+            // Note: audience and lifetime are manually validated by OpenIddict itself.
+            ValidateAudience = false,
+            ValidateLifetime = false
         };
 
         /// <summary>
@@ -123,6 +137,7 @@ namespace OpenIddict.Server
         /// This option MUST be enabled with extreme caution and custom handlers MUST be registered to
         /// properly validate OpenID Connect requests.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
         public bool EnableDegradedMode { get; set; }
 
         /// <summary>
@@ -188,6 +203,22 @@ namespace OpenIddict.Server
         /// Gets the OAuth 2.0/OpenID Connect flows enabled for this application.
         /// </summary>
         public ISet<string> GrantTypes { get; } = new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Gets the OAuth 2.0/OpenID Connect response types enabled for this application.
+        /// Response types are automatically inferred from the supported standard grant types,
+        /// but additional values can be added for advanced scenarios (e.g custom type support).
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public ISet<string> ResponseTypes { get; } = new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Gets the OAuth 2.0/OpenID Connect response modes enabled for this application.
+        /// Response modes are automatically inferred from the supported standard grant types,
+        /// but additional values can be added for advanced scenarios (e.g custom mode support).
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public ISet<string> ResponseModes { get; } = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Gets or sets a boolean indicating whether endpoint permissions should be ignored.
